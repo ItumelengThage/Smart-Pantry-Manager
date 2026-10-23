@@ -52,6 +52,18 @@
         android:text="+ Add Ingredient"
         android:layout_marginBottom="12dp"/>
 
+    <Button
+        android:id="@+id/btnSuggestedRecipes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Find Recipes" />
+
+    <Button
+        android:id="@+id/btnOpenSettings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Settings" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerPantry"
         android:layout_width="match_parent"
