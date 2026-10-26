@@ -16,15 +16,18 @@ import com.example.smartpantrymanager.RecipeDetailActivity;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RecipeAdapter
-        extends RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder> {
+public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder> {
 
-    private final List<Recipe> recipes = new ArrayList<>();
+    List<Recipe> recipes = new ArrayList<>();
 
     public void setRecipes(List<Recipe> newRecipes) {
         recipes.clear();
         recipes.addAll(newRecipes);
         notifyDataSetChanged();
+    }
+
+    public RecipeAdapter(List<Recipe> recipes){
+        this.recipes = recipes;
     }
 
     @NonNull

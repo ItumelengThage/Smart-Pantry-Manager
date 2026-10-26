@@ -1,11 +1,6 @@
 package com.example.smartpantrymanager;
 
 import android.content.Intent;
-import android.widget.Button;
-import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
-
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -23,6 +18,7 @@ import com.example.smartpantrymanager.model.PantryItem;
 
 import java.util.List;
 
+
 public class MainActivity extends AppCompatActivity {
 
     private DatabaseHelper databaseHelper;
@@ -31,25 +27,29 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         Button btnOpenSettings = findViewById(R.id.btnOpenSettings);
 
         btnOpenSettings.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+            Intent intent = new Intent(MainActivity.this,
+                    SettingsActivity.class);
             startActivity(intent);
         });
 
         Button btnSuggestedRecipes = findViewById(R.id.btnSuggestedRecipes);
 
         btnSuggestedRecipes.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, SuggestedRecipesActivity.class);
-
-            startActivity(intent);
+            Intent intent = new Intent(MainActivity.this,
+                    SuggestedRecipesActivity.class);
         });
 
+
+
         databaseHelper = new DatabaseHelper(this);
+
 
         RecyclerView recyclerPantry = findViewById(R.id.recyclerPantry);
 
@@ -63,11 +63,13 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onEdit(PantryItem item) {
+
                         editIngredient(item);
                     }
 
                     @Override
                     public void onDelete(PantryItem item) {
+
                         confirmDelete(item);
                     }
                 }
@@ -76,7 +78,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerPantry.setAdapter(pantryAdapter);
 
         btnAddIngredient.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, AddEditIngredientActivity.class);
+
+            Intent intent = new Intent(MainActivity.this,
+                    AddEditIngredientActivity.class);
             startActivity(intent);
         });
 
@@ -88,24 +92,29 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         if (databaseHelper != null && pantryAdapter != null) {
+
             loadPantryItems();
         }
     }
 
     private void loadPantryItems() {
+
         List<PantryItem> items = databaseHelper.getAllPantryItems();
 
         pantryAdapter.setItems(items);
 
         if (items.isEmpty()) {
             txtEmptyPantry.setVisibility(View.VISIBLE);
-        } else {
+        }
+        else {
             txtEmptyPantry.setVisibility(View.GONE);
         }
     }
 
     private void editIngredient(PantryItem item) {
-        Intent intent = new Intent(MainActivity.this, AddEditIngredientActivity.class);
+
+        Intent intent = new Intent(MainActivity.this,
+                AddEditIngredientActivity.class);
 
         intent.putExtra(AddEditIngredientActivity.EXTRA_ITEM_ID, item.getId());
 
@@ -113,29 +122,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void confirmDelete(PantryItem item) {
-        new AlertDialog.Builder(this)
-                .setTitle("Delete ingredient")
+
+        new AlertDialog.Builder(this).setTitle("Delete ingredient")
                 .setMessage("Are you sure you want to delete " + item.getName() + "?")
                 .setPositiveButton("Delete", (dialog, which) -> {
 
-                    int result = databaseHelper.deletePantryItem(
-                            item.getId());
+                    int result = databaseHelper.deletePantryItem(item.getId());
 
                     if (result > 0) {
-                        Toast.makeText(
-                                this,
-                                "Ingredient deleted",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                        Toast.makeText(this,
+                                "Ingredient deleted", Toast.LENGTH_SHORT).show();
 
                         loadPantryItems();
-                    } else {
-                        Toast.makeText(this, "Could not delete ingredient", Toast.LENGTH_SHORT
-                        ).show();
                     }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+                    else {
+                        Toast.makeText(this, "Could not delete ingredient",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                }).setNegativeButton("Cancel", null).show();
     }
 
     @Override

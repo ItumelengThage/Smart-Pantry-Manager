@@ -2,17 +2,18 @@ package com.example.smartpantrymanager;
 
 import android.os.Bundle;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smartpantrymanager.database.DatabaseHelper;
+import com.example.smartpantrymanager.adapter.RecipeAdapter;
 import com.example.smartpantrymanager.model.PantryItem;
 import com.example.smartpantrymanager.model.Recipe;
 import com.example.smartpantrymanager.util.IngredientMatcher;
-import com.example.smartpantrymanager.adapter.RecipeAdapter;
+
 
 import java.util.List;
 
@@ -20,6 +21,8 @@ public class SuggestedRecipesActivity extends AppCompatActivity {
 
     private DatabaseHelper databaseHelper;
     private TextView txtRecipeMessage;
+
+    private RecyclerView recyclerRecipes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +33,7 @@ public class SuggestedRecipesActivity extends AppCompatActivity {
 
         txtRecipeMessage = findViewById(R.id.txtRecipeMessage);
 
-        RecyclerView recyclerRecipes = findViewById(R.id.recyclerRecipes);
+        recyclerRecipes = findViewById(R.id.recyclerRecipes);
 
         recyclerRecipes.setLayoutManager(new LinearLayoutManager(this));
 
@@ -40,7 +43,6 @@ public class SuggestedRecipesActivity extends AppCompatActivity {
     private void loadSuggestedRecipes() {
         List<Recipe> recipes = databaseHelper.getAllRecipes();
 
-
         for (Recipe recipe : recipes) {
             recipe.setIngredients(databaseHelper.getRecipeIngredients(recipe.getId()));
         }
@@ -49,18 +51,14 @@ public class SuggestedRecipesActivity extends AppCompatActivity {
 
         List<Recipe> suggestions = IngredientMatcher.getSuggestedRecipes(recipes, pantryItems);
 
-        txtRecipeMessage.setText(suggestions.isEmpty() ? "No recipes match your current pantry. " +
-                        "Add ingredients or update their quantities."
-                        : suggestions.size() +
-                        " recipe(s) you can make with your pantry:"
-        );
-        RecipeAdapter adapter = new RecipeAdapter();
-        adapter.setRecipes(suggestions);
-
-        RecyclerView recyclerRecipes =
-                findViewById(R.id.recyclerRecipes);
-
+        RecipeAdapter adapter = new RecipeAdapter(suggestions);
         recyclerRecipes.setAdapter(adapter);
+
+        if (suggestions.isEmpty()) {
+            txtRecipeMessage.setText("Add ingredients to get recipe ingredients.");
+        } else {
+            txtRecipeMessage.setText(suggestions.size() + " recipe(s) you can make:");
+        }
     }
 
     @Override
