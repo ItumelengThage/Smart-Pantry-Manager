@@ -26,69 +26,54 @@ public class RecipeDetailActivity extends AppCompatActivity {
         databaseHelper = new DatabaseHelper(this);
 
         int recipeId = getIntent().getIntExtra(EXTRA_RECIPE_ID, -1);
-
         if (recipeId == -1) {
             Toast.makeText(this, "Recipe could not be found.", Toast.LENGTH_SHORT).show();
-
             finish();
-
             return;
         }
 
-        displayRecipe(recipeId);
-    }
+        TextView name = findViewById(R.id.txtDetailRecipeName);
+        TextView ingredients = findViewById(R.id.txtDetailIngredients);
+        TextView instructions = findViewById(R.id.txtDetailInstructions);
 
-    private void displayRecipe(int recipeId) {
-        TextView txtRecipeName = findViewById(R.id.txtDetailRecipeName);
-
-        TextView txtRecipeIngredients = findViewById(R.id.txtDetailIngredients);
-
-        TextView txtRecipeInstructions = findViewById(R.id.txtDetailInstructions);
-
-        Recipe selectedRecipe = null;
-
-        for (Recipe recipe : databaseHelper.getAllRecipes()) {
-            if (recipe.getId() == recipeId) {
-                selectedRecipe = recipe;
-                break;
-            }
+        Recipe selected = null;
+        for (Recipe r : databaseHelper.getAllRecipes()) {
+            if (r.getId() == recipeId) { selected = r; break; }
         }
 
-        if (selectedRecipe == null) {
+        if (selected == null) {
             Toast.makeText(this, "Recipe not found.", Toast.LENGTH_SHORT).show();
-
             finish();
-
             return;
         }
 
-        List<RecipeIngredient> ingredients = databaseHelper.getRecipeIngredients(recipeId);
+        List<RecipeIngredient> list = databaseHelper.getRecipeIngredients(recipeId);
 
-        txtRecipeName.setText(selectedRecipe.getName());
+        name.setText(selected.getName());
 
-        StringBuilder ingredientText = new StringBuilder();
-
-        for (RecipeIngredient ingredient : ingredients) {
-            ingredientText.append("• ")
-                    .append(ingredient.getIngredientName())
+        StringBuilder sb = new StringBuilder();
+        for (RecipeIngredient ing : list) {
+            sb.append("• ")
+                    .append(ing.getIngredientName())
                     .append(" — ")
-                    .append(ingredient.getRequiredQuantity())
+                    .append(formatQty(ing.getRequiredQuantity()))
                     .append(" ")
-                    .append(ingredient.getUnit())
+                    .append(ing.getUnit())
                     .append("\n");
         }
+        ingredients.setText(sb.toString().trim());
+        instructions.setText(selected.getInstructions());
+    }
 
-        txtRecipeIngredients.setText(ingredientText.toString());
+    private String formatQty(double q) {
+        if (q == Math.floor(q)) return String.valueOf((int) q);
 
-        txtRecipeInstructions.setText(selectedRecipe.getInstructions());
+        return String.valueOf(q);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        if (databaseHelper != null) {
-            databaseHelper.close();
-        }
+        if (databaseHelper != null) databaseHelper.close();
     }
 }

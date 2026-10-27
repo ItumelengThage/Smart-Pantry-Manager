@@ -1,30 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/pantry_bg"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="20dp">
 
         <TextView
             android:id="@+id/txtFormTitle"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Add Ingredient"
-            android:textSize="25sp"
+            android:textColor="#FFFFFF"
+            android:textSize="26sp"
             android:textStyle="bold"
-            android:textColor="#20352A"
-            android:layout_marginBottom="24dp"/>
+            android:shadowColor="#000000"
+            android:shadowRadius="6"
+            android:layout_marginBottom="20dp"/>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Ingredient name:"/>
+            android:text="Ingredient Name:"
+            android:textColor="#FFFFFF"/>
 
         <EditText
             android:id="@+id/edtIngredientName"
@@ -32,12 +35,15 @@
             android:layout_height="wrap_content"
             android:hint="e.g. Tomatoes"
             android:inputType="textCapSentences"
-            android:maxLength="80"/>
+            android:maxLength="80"
+            android:background="@drawable/card_bg"
+            android:padding="12dp"/>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Quantity:"
+            android:textColor="#FFFFFF"
             android:layout_marginTop="16dp"/>
 
         <EditText
@@ -45,12 +51,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="e.g. 5"
-            android:inputType="numberDecimal"/>
+            android:inputType="numberDecimal"
+            android:background="@drawable/card_bg"
+            android:padding="12dp"/>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Unit:"
+            android:textColor="#FFFFFF"
             android:layout_marginTop="16dp"/>
 
         <Spinner
@@ -59,9 +68,11 @@
             android:layout_height="wrap_content"/>
 
         <TextView
+
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Expiry date (optional)"
+            android:textColor="#FFFFFF"
             android:layout_marginTop="16dp"/>
 
         <EditText
@@ -70,20 +81,27 @@
             android:layout_height="wrap_content"
             android:hint="Select expiry date"
             android:focusable="false"
-            android:clickable="true"/>
+            android:clickable="true"
+            android:background="@drawable/card_bg"
+            android:padding="12dp"/>
 
         <Button
             android:id="@+id/btnSaveIngredient"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Save Ingredient"
-            android:layout_marginTop="28dp"/>
+            android:layout_marginTop="24dp"
+            android:background="@drawable/btn_primary_bg"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"/>
 
         <Button
             android:id="@+id/btnCancelIngredient"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Cancel"/>
-
+            android:text="Cancel"
+            android:background="@drawable/btn_secondary_bg"
+            android:textColor="#1B1B1B"
+            android:textStyle="bold"/>
     </LinearLayout>
 </ScrollView>

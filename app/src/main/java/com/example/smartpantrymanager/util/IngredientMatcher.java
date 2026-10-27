@@ -3,6 +3,7 @@ package com.example.smartpantrymanager.util;
 import com.example.smartpantrymanager.model.PantryItem;
 import com.example.smartpantrymanager.model.Recipe;
 import com.example.smartpantrymanager.model.RecipeIngredient;
+
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,221 +11,111 @@ import java.util.Locale;
 
 public class IngredientMatcher {
 
-    private IngredientMatcher() {
-        // Utility class: no object needed.
-    }
+    private IngredientMatcher() {}
 
-    /**
-     * Returns only recipes for which every required ingredient
-     * is present in sufficient quantity.
-     */
-    public static List<Recipe> getSuggestedRecipes(
-            List<Recipe> recipes,
-            List<PantryItem> pantryItems) {
-
-        List<Recipe> suggestions = new ArrayList<>();
-
+    public static List<Recipe> getSuggestedRecipes(List<Recipe> recipes,
+                                                   List<PantryItem> pantry) {
+        List<Recipe> result = new ArrayList<>();
         for (Recipe recipe : recipes) {
-            boolean allIngredientsAvailable = true;
-
-            for (RecipeIngredient required : recipe.getIngredients()) {
-                if (!hasEnoughIngredient(required, pantryItems)) {
-                    allIngredientsAvailable = false;
+            if (recipe.getIngredients().isEmpty()) continue;
+            boolean all = true;
+            for (RecipeIngredient req : recipe.getIngredients()) {
+                if (!hasEnoughIngredient(req, pantry)) {
+                    all = false;
                     break;
                 }
             }
-
-            if (allIngredientsAvailable
-                    && !recipe.getIngredients().isEmpty()) {
-                suggestions.add(recipe);
-            }
+            if (all) result.add(recipe);
         }
-
-        return suggestions;
+        return result;
     }
 
-    private static boolean hasEnoughIngredient(
-            RecipeIngredient required,
-            List<PantryItem> pantryItems) {
+    public static boolean hasEnoughIngredient(RecipeIngredient required,
+                                              List<PantryItem> pantry) {
+        String reqName = normalizeIngredientName(required.getIngredientName());
+        String reqUnit = normalizeUnit(required.getUnit());
+        String reqDim = getDimension(reqUnit);
+        if (reqDim == null) return false;
 
-        String requiredName =
-                normalizeIngredientName(required.getIngredientName());
+        double requiredAmount = toBaseQuantity(required.getRequiredQuantity(), reqUnit);
+        double available = 0.0;
 
-        String requiredUnit = normalizeUnit(required.getUnit());
-        String requiredDimension = getDimension(requiredUnit);
-
-        if (requiredDimension == null) {
-            return false;
-        }
-
-        double requiredAmount = toBaseQuantity(
-                required.getRequiredQuantity(), requiredUnit);
-
-        double availableAmount = 0;
-
-        for (PantryItem item : pantryItems) {
-            String pantryName = normalizeIngredientName(item.getName());
-
-            if (!requiredName.equals(pantryName)) {
-                continue;
-            }
-
+        for (PantryItem item : pantry) {
+            if (!reqName.equals(normalizeIngredientName(item.getName()))) continue;
             String pantryUnit = normalizeUnit(item.getUnit());
-
-            // Do not compare incompatible units, such as grams and cups.
-            if (!requiredDimension.equals(getDimension(pantryUnit))) {
-                continue;
-            }
-
-            availableAmount += toBaseQuantity(
-                    item.getQuantity(), pantryUnit);
+            if (!reqDim.equals(getDimension(pantryUnit))) continue;
+            available += toBaseQuantity(item.getQuantity(), pantryUnit);
         }
-
-        return availableAmount + 0.000001 >= requiredAmount;
+        return available + 0.000001 >= requiredAmount;
     }
 
     private static String normalizeIngredientName(String name) {
-        if (name == null) {
-            return "";
+        if (name == null) return "";
+        String n = Normalizer.normalize(name.trim().toLowerCase(Locale.ROOT),
+                        Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replaceAll("\\s+", "");
+        switch (n) {
+            case "tomatoes": return "tomato";
+            case "potatoes": return "potato";
+            case "leaves":   return "leaf";
+            case "loaves":   return "loaf";
         }
-
-        String normalized = Normalizer.normalize(
-                name.trim().toLowerCase(Locale.ROOT),
-                Normalizer.Form.NFD
-        ).replaceAll("\\p{M}", "");
-
-        normalized = normalized.replaceAll("\\s+", " ");
-
-        // Common irregular plurals.
-        switch (normalized) {
-            case "tomatoes":
-                return "tomato";
-            case "potatoes":
-                return "potato";
-            case "leaves":
-                return "leaf";
-            case "loaves":
-                return "loaf";
-            default:
-                break;
+        if (n.endsWith("ies") && n.length() > 3) {
+            return n.substring(0, n.length() - 3) + "y";
         }
-
-        // Examples: berries -> berry, onions -> onion.
-        if (normalized.endsWith("ies") && normalized.length() > 3) {
-            return normalized.substring(0, normalized.length() - 3) + "y";
+        if (n.endsWith("s") && !n.endsWith("ss") && n.length() > 2) {
+            return n.substring(0, n.length() - 1);
         }
-
-        // General plural handling: eggs -> egg, beans -> bean.
-        if (normalized.endsWith("s")
-                && !normalized.endsWith("ss")
-                && normalized.length() > 2) {
-            return normalized.substring(0, normalized.length() - 1);
-        }
-
-        return normalized;
+        return n;
     }
 
     private static String normalizeUnit(String unit) {
-        if (unit == null) {
-            return "";
-        }
-
-        String normalized = unit.trim().toLowerCase(Locale.ROOT);
-
-        switch (normalized) {
-            case "piece":
-            case "pieces":
-            case "pc":
-            case "pcs":
+        if (unit == null) return "";
+        String u = unit.trim().toLowerCase(Locale.ROOT);
+        switch (u) {
+            case "piece": case "pieces": case "pc": case "pcs":
                 return "pieces";
-
-            case "gram":
-            case "grams":
+            case "gram": case "grams":
                 return "g";
-
-            case "kilogram":
-            case "kilograms":
-            case "kgs":
+            case "kilogram": case "kilograms": case "kgs":
                 return "kg";
-
-            case "millilitre":
-            case "millilitres":
-            case "milliliter":
-            case "milliliters":
+            case "millilitre": case "millilitres":
+            case "milliliter": case "milliliters":
                 return "ml";
-
-            case "litre":
-            case "litres":
-            case "liter":
-            case "liters":
-            case "l":
+            case "litre": case "litres":
+            case "liter": case "liters": case "l":
                 return "litres";
-
-            case "tablespoon":
-            case "tablespoons":
+            case "tablespoon": case "tablespoons":
                 return "tbsp";
-
-            case "teaspoon":
-            case "teaspoons":
+            case "teaspoon": case "teaspoons":
                 return "tsp";
-
             case "cups":
                 return "cup";
-
             default:
-                return normalized;
+                return u;
         }
     }
 
     private static String getDimension(String unit) {
         switch (unit) {
-            case "pieces":
-                return "count";
-
-            case "g":
-            case "kg":
-                return "mass";
-
-            case "ml":
-            case "litres":
-            case "cup":
-            case "tbsp":
-            case "tsp":
+            case "pieces": return "count";
+            case "g": case "kg": return "mass";
+            case "ml": case "litres": case "cup": case "tbsp": case "tsp":
                 return "volume";
-
-            default:
-                return null;
+            default: return null;
         }
     }
 
-    /**
-     * Converts quantities to a common base:
-     * count = pieces, mass = grams, volume = millilitres.
-     */
-    private static double toBaseQuantity(double quantity, String unit) {
+    private static double toBaseQuantity(double qty, String unit) {
         switch (unit) {
-            case "kg":
-                return quantity * 1000.0;
-
-            case "litres":
-                return quantity * 1000.0;
-
-            case "cup":
-                return quantity * 240.0;
-
-            case "tbsp":
-                return quantity * 15.0;
-
-            case "tsp":
-                return quantity * 5.0;
-
-            case "g":
-            case "ml":
-            case "pieces":
-                return quantity;
-
-            default:
-                return 0;
+            case "kg": return qty * 1000.0;
+            case "litres": return qty * 1000.0;
+            case "cup": return qty * 240.0;
+            case "tbsp": return qty * 15.0;
+            case "tsp": return qty * 5.0;
+            case "g": case "ml": case "pieces": return qty;
+            default: return 0;
         }
     }
 }

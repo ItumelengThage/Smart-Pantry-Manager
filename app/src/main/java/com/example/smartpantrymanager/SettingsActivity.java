@@ -21,8 +21,8 @@ public class SettingsActivity extends AppCompatActivity {
     private Spinner spinnerDefaultUnit;
     private DatabaseHelper databaseHelper;
 
-    private final String[] units = {"pieces", "g", "kg", "ml",
-            "litres", "cups", "tbsp", "tsp"
+    private final String[] units = {
+            "pieces", "g", "kg", "ml", "litres", "cups", "tbsp", "tsp"
     };
 
     @Override
@@ -31,63 +31,51 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         preferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-
         databaseHelper = new DatabaseHelper(this);
 
         spinnerDefaultUnit = findViewById(R.id.spinnerDefaultUnit);
-        Button btnSaveSettings = findViewById(R.id.btnSaveSettings);
-        Button btnClearPantry = findViewById(R.id.btnClearPantry);
+        Button save = findViewById(R.id.btnSaveSettings);
+        Button clear = findViewById(R.id.btnClearPantry);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item, units);
-
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, units);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
         spinnerDefaultUnit.setAdapter(adapter);
 
-        String savedUnit = preferences.getString(KEY_DEFAULT_UNIT, "pieces");
+        String saved = preferences.getString(KEY_DEFAULT_UNIT, "pieces");
 
         for (int i = 0; i < units.length; i++) {
-            if (units[i].equals(savedUnit)) {
+            if (units[i].equals(saved)) {
                 spinnerDefaultUnit.setSelection(i);
                 break;
             }
         }
 
-        btnSaveSettings.setOnClickListener(v -> saveSettings());
+        save.setOnClickListener(v -> {
+            preferences.edit()
+                    .putString(KEY_DEFAULT_UNIT,
+                            spinnerDefaultUnit.getSelectedItem().toString())
+                    .apply();
+            Toast.makeText(this, "Settings saved.", Toast.LENGTH_SHORT).show();
+        });
 
-        btnClearPantry.setOnClickListener(v -> confirmClearPantry());
-    }
-
-    private void saveSettings() {
-        String selectedUnit = spinnerDefaultUnit.getSelectedItem().toString();
-
-        preferences.edit().putString(KEY_DEFAULT_UNIT, selectedUnit).apply();
-
-        Toast.makeText(this, "Settings saved.", Toast.LENGTH_SHORT).show();
-    }
-
-    private void confirmClearPantry() {
-        new AlertDialog.Builder(this)
+        clear.setOnClickListener(v -> new AlertDialog.Builder(this)
                 .setTitle("Clear pantry")
-                .setMessage("Are you sure you want to delete all pantry " + "ingredients? This cannot be undone.")
-                .setPositiveButton("Clear", (dialog, which) -> {
-                    int deleted = databaseHelper.clearPantry();
+                .setMessage("Delete all pantry ingredients? This cannot be undone.")
+                .setPositiveButton("Clear", (d, w) -> {
 
-                    Toast.makeText(this, deleted >= 0 ? "Pantry cleared." : "Could not clear pantry.",
-                            Toast.LENGTH_SHORT
-                    ).show();
+                    int deleted = databaseHelper.clearPantry();
+                    Toast.makeText(this,
+                            deleted >= 0 ? "Pantry cleared." : "Could not clear.",
+                            Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Cancel", null)
-                .show();
+                .show());
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        if (databaseHelper != null) {
-            databaseHelper.close();
-        }
+        if (databaseHelper != null) databaseHelper.close();
     }
 }
